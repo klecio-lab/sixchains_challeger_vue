@@ -5,13 +5,28 @@
 </template>
 
 <script>
-export default {
-    mounted() {
-        // Limpando o token do localStorage
-        localStorage.removeItem('token');
+import axios from '../axios';
 
-        // Redirecionando para a página de login
-        this.$router.push('/login');
+export default {
+    methods: {
+        async logout() {
+            try {
+                const token = localStorage.getItem('token');
+                await axios.post('auth/logout', {}, {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                });
+            } catch (error) {
+                console.error('Erro ao fazer logout:', error);
+            } finally {
+                localStorage.removeItem('token');
+                this.$router.push('/login');
+            }
+        }
+    },
+    mounted() {
+        this.logout();
     }
 };
 </script>

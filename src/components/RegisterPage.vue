@@ -7,23 +7,33 @@
                         <img src="@/assets/logo_sixchains_roxo.png" class="img-fluid" alt="Sample image">
                     </div>
                     <div class="col-md-8 col-lg-6 col-xl-4 offset-xl-1">
-                        <form @submit.prevent="login">
+                        <form @submit.prevent="register">
                             <div class="divider d-flex align-items-center my-4">
-                                <p class="text-center fw-bold mx-3 mb-0">Login</p>
+                                <p class="text-center fw-bold mx-3 mb-0">register</p>
+                            </div>
+
+                            <!-- Email input -->
+                            <div data-mdb-input-init class="form-outline mb-4">
+                                <input v-model="name" type="text" id="form3Example3"
+                                    class="form-control form-control-lg" placeholder="Seu Nome" />
                             </div>
 
                             <!-- Email input -->
                             <div data-mdb-input-init class="form-outline mb-4">
                                 <input v-model="email" type="email" id="form3Example3"
                                     class="form-control form-control-lg" placeholder="Adicione um endereço de E-mail" />
-                                <label class="form-label" for="form3Example3">Seu endereço de Email</label>
                             </div>
 
                             <!-- Password input -->
                             <div data-mdb-input-init class="form-outline mb-3">
                                 <input v-model="password" type="password" id="form3Example4"
                                     class="form-control form-control-lg" placeholder="Sua Senha" />
-                                <label class="form-label" for="form3Example4">Sua senha</label>
+                            </div>
+
+                            <!-- Password confirmation input -->
+                            <div data-mdb-input-init class="form-outline mb-3">
+                                <input v-model="password_confirmation" type="password" id="form3Example4"
+                                    class="form-control form-control-lg" placeholder="Confirme Sua Senha" />
                             </div>
 
                             <p v-if="error" class="error">{{ error }}</p>
@@ -31,12 +41,11 @@
                             <div class="text-center text-lg-start mt-4 pt-2">
                                 <button type="submit" data-mdb-button-init data-mdb-ripple-init
                                     class="btn btn-primary btn-lg bg-custom bg-custom-button"
-                                    style="padding-left: 2.5rem; padding-right: 2.5rem;">Login</button>
-                                <p class="small fw-bold mt-2 pt-1 mb-0">Não tem conta?
-                                    <router-link to="/register" class="link-danger">Registre-se</router-link>
+                                    style="padding-left: 2.5rem; padding-right: 2.5rem;">Enviar</button>
+                                <p class="small fw-bold mt-2 pt-1 mb-0">Já tem conta?
+                                    <router-link to="/login" class="link-danger">Login</router-link>
                                 </p>
                             </div>
-
                         </form>
                     </div>
                 </div>
@@ -59,17 +68,21 @@ import axios from '../axios';
 export default {
     data() {
         return {
+            name: '',
             email: '',
             password: '',
+            password_confirmation: '',
             error: ''
         };
     },
     methods: {
         async login() {
             try {
-                const response = await axios.post('auth/login', {
+                const response = await axios.post('auth/register', {
+                    name: this.name,
                     email: this.email,
-                    password: this.password
+                    password: this.password,
+                    password_confirmation: this.password_confirmation
                 });
 
                 // Armazenando o token no localStorage
