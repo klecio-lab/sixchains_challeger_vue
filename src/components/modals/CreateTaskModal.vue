@@ -11,7 +11,8 @@
                         <form @submit.prevent="createTask">
                             <div class="mb-3">
                                 <label for="title" class="form-label">Título</label>
-                                <input type="text" class="form-control" id="title" v-model="newTaskLocal.title" required />
+                                <input type="text" class="form-control" id="title" v-model="newTaskLocal.title"
+                                    required />
                             </div>
                             <div class="mb-3">
                                 <label for="description" class="form-label">Descrição</label>
@@ -36,9 +37,9 @@
 
 <script>
 import axios from '../../axios';
-import { Modal } from 'bootstrap';
+import $ from 'jquery';
 export default {
-    props: ['newTask'],
+    props: ['newTask', 'listTasks'],
     data() {
         return {
             newTaskLocal: { ...this.newTask }  // Cria uma cópia local da prop
@@ -46,17 +47,21 @@ export default {
     },
     methods: {
         openCreateTaskModal() {
-            const addTaskModal = new Modal(document.getElementById('addTaskModal'));
-            addTaskModal.show();
+            $('#addTaskModal').show();
         },
         async createTask() {
             try {
                 await axios.post('/task', this.newTaskLocal);
-                const addModal = new Modal(document.getElementById('addTaskModal'));
-                addModal.hide();  // Fecha o modal
+                this.$nextTick(() => {
+                    this.listTasks();
+                    $('#addTaskModal').toggle();
+                    $('.modal-backdrop').remove();
+                })
+
             } catch (error) {
                 this.responseError = 'Erro ao criar task';
             }
+
         }
     }
 };

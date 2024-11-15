@@ -1,6 +1,6 @@
 <template>
     <div class="home">
-        <section class="vh-100 bg-light" style="padding-bottom: 50px;">
+        <section class="vh-200" style="padding-bottom: 100px;">
             <nav class="navbar navbar-expand-lg navbar-dark bg-custom">
                 <div class="container-fluid">
                     <!-- Botão de Menu Responsivo -->
@@ -76,7 +76,7 @@
             </div>
 
             <!-- Modal para Adicionar Nova Task -->
-            <CreateTaskModal :newTask="newTask"></CreateTaskModal>
+            <CreateTaskModal :newTask="newTask" :listTasks="listTasks"></CreateTaskModal>
 
 
             <!-- Modal de Edição -->
@@ -144,7 +144,7 @@
 import axios from '../axios';
 import { Modal } from 'bootstrap';
 import CreateTaskModal from './modals/CreateTaskModal.vue';
-
+import $ from 'jquery';
 export default {
     name: 'HomePage',
     components: {
@@ -220,8 +220,11 @@ export default {
                     description: this.taskToEdit.description,
                     status: this.taskToEdit.status
                 });
-                const myModal = new Modal(document.getElementById('editTaskModal'));
-                myModal.hide();
+                this.$nextTick(() => {
+                    this.listTasks();
+                    $('#editTaskModal').toggle();
+                    $('.modal-backdrop').remove();
+                })
             } catch (error) {
                 this.responseError = 'Erro ao atualizar o status da tarefa';
             }
@@ -237,8 +240,10 @@ export default {
                     await axios.delete(`/task/${this.taskToDelete.id}`);
                     this.tasks = this.tasks.filter(task => task.id !== this.taskToDelete.id);
                     this.taskToDelete = null;
-                    const deleteModal = new Modal(document.getElementById('deleteModal'));
-                    deleteModal.hide();
+                    this.$nextTick(() => {
+                        $('#deleteModal').toggle();
+                        $('.modal-backdrop').remove();
+                    })
                 } catch (error) {
                     this.responseError = 'Erro ao excluir a tarefa';
                 }
