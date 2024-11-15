@@ -47,6 +47,12 @@ export default {
     },
     methods: {
         openCreateTaskModal() {
+            // Reseta os valores da task
+            this.newTaskLocal = {
+                title: '',
+                description: '',
+                status: 'pending'
+            };
             $('#addTaskModal').show();
         },
         async createTask() {
@@ -58,10 +64,20 @@ export default {
                     $('.modal-backdrop').remove();
                     document.body.style.overflow = '';
                     document.body.style.paddingRight = '';
+                    this.newTaskLocal = {
+                        title: '',
+                        description: '',
+                        status: 'pending'
+                    };
                     this.showToastSuccess('Tarefa Criada Com Sucesso!')
                 })
 
             } catch (error) {
+                this.newTaskLocal = {
+                    title: '',
+                    description: '',
+                    status: 'pending'
+                };
                 document.body.style.overflow = '';
                 document.body.style.paddingRight = '';
                 this.showToastError('Error ao Criar Tarefa!')
