@@ -15,21 +15,25 @@
                             <!-- Email input -->
                             <div data-mdb-input-init class="form-outline mb-4">
                                 <input v-model="email" type="email" id="form3Example3"
-                                    class="form-control form-control-lg" placeholder="Adicione um endereço de E-mail" />
+                                    class="form-control form-control-lg" @input="validateEmail"
+                                    placeholder="Adicione um endereço de E-mail" />
                                 <label class="form-label" for="form3Example3">Seu endereço de Email</label>
+                                <div v-if="error.email" class="text-danger">{{ error.email }}</div>
                             </div>
 
                             <!-- Password input -->
                             <div data-mdb-input-init class="form-outline mb-3">
-                                <input v-model="password" type="password" id="form3Example4"
+                                <input v-model="password" type="password" id="form3Example4" @input="validatePassword"
                                     class="form-control form-control-lg" placeholder="Sua Senha" />
                                 <label class="form-label" for="form3Example4">Sua senha</label>
+                                <div v-if="error.password" class="text-danger">{{ error.password }}</div>
                             </div>
 
-                            <p v-if="error" class="error">{{ error }}</p>
+                            <p v-if="responseError" class="error">{{ responseError }}</p>
 
                             <div class="text-center text-lg-start mt-4 pt-2">
                                 <button type="submit" data-mdb-button-init data-mdb-ripple-init
+                                    :disabled="isFormInvalid" :class="{ 'bg-custom': isFormInvalid }"
                                     class="btn btn-primary btn-lg bg-custom bg-custom-button"
                                     style="padding-left: 2.5rem; padding-right: 2.5rem;">Login</button>
                                 <p class="small fw-bold mt-2 pt-1 mb-0">Não tem conta?
@@ -61,7 +65,11 @@ export default {
         return {
             email: '',
             password: '',
-            error: ''
+            error: {
+                email: ' ',
+                password: ' ',
+            },
+            responseError: ''
         };
     },
     methods: {
@@ -79,7 +87,28 @@ export default {
                 this.$router.push('/');
             } catch (error) {
                 // Mostrando erro, caso o login falhe
-                this.error = 'Email ou senha incorretos!';
+                this.responseError = 'Email ou senha incorretos!';
+            }
+        },
+        validateEmail() {
+            const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+            if (!emailRegex.test(this.email)) {
+                this.error.email = 'Digite um email válido';
+            } else {
+                this.error.email = '';
+            }
+        },
+        validatePassword() {
+            if (this.password.length < 6) {
+                this.error.password = 'A senha deve ter pelo menos 6 caracteres';
+            } else {
+                this.error.password = '';
+            }
+        },
+        computed: {
+            isFormInvalid() {
+                // Desabilita o botão de submit se houver algum erro
+                return Object.values(this.error).some(err => err !== '');
             }
         }
     }
