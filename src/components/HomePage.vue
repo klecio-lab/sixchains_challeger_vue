@@ -1,6 +1,6 @@
 <template>
     <div class="home">
-        <section class="vh-100 bg-light">
+        <section class="vh-100 bg-light" style="padding-bottom: 50px;">
             <nav class="navbar navbar-expand-lg navbar-dark bg-custom">
                 <div class="container-fluid">
                     <!-- Botão de Menu Responsivo -->
@@ -27,49 +27,68 @@
                     </div>
                 </div>
                 <div class="row justify-content-center">
-                    <div class="col-md-10">
+                    <div class="col-md-12">
                         <table class="table table-striped table-hover shadow-sm rounded">
-                            <thead class="table-dark">
-                                <tr>
+                            <thead class="table" style="background-color: #311772;">
+                                <tr style="background-color: #311772;">
                                     <th scope="col" style="width: 5%;"></th>
                                     <th scope="col">Título</th>
                                     <th scope="col">Descrição</th>
                                     <th scope="col">Status</th>
+                                    <th scope="col" style="width: 15%;">Ações</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
+                                <tr v-for="task in tasks" :key="task.id">
                                     <th scope="row">
                                         <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" id="flexCheckDefault1" />
+                                            <input
+                                                class="form-check-input"
+                                                type="checkbox"
+                                                :checked="task.status === 'completed'"
+                                                @change="updateTaskStatus(task)"
+                                            />
                                         </div>
                                     </th>
-                                    <td>Sit</td>
-                                    <td>Amet</td>
-                                    <td><span class="badge bg-success">Concluído</span></td>
-                                </tr>
-                                <tr>
-                                    <th scope="row">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" id="flexCheckDefault2" />
-                                        </div>
-                                    </th>
-                                    <td>Adipisicing</td>
-                                    <td>Elit</td>
-                                    <td><span class="badge bg-warning">Pendente</span></td>
-                                </tr>
-                                <tr>
-                                    <th scope="row">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" id="flexCheckDefault3" />
-                                        </div>
-                                    </th>
-                                    <td>Hic</td>
-                                    <td>Fugiat</td>
-                                    <td><span class="badge bg-danger">Atrasado</span></td>
+                                    <td>{{ task.title }}</td>
+                                    <td>{{ task.description }}</td>
+                                    <td>
+                                        <span :class="statusBadgeClass(task.status)">
+                                            {{ formatStatus(task.status) }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <!-- Botão Editar -->
+                                        <button class="btn btn-warning btn-sm me-2" @click="editTask(task.id)">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </button>
+                                        <!-- Botão Deletar -->
+                                        <button class="btn btn-danger btn-sm" @click="openDeleteModal(task)">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal de Confirmação de delete -->
+            <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="deleteModalLabel">Confirmação de Exclusão</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            Tem certeza de que deseja excluir esta tarefa?
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn btn-danger" @click="confirmDeleteTask">Confirmar</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -81,8 +100,79 @@
 </template>
 
 <script>
+import axios from '../axios';
+
 export default {
-    name: 'HomePage'
+    name: 'HomePage',
+    data() {
+        return {
+            tasks: [],
+            responseError: '',
+            taskToDelete: null
+        };
+    },
+    methods: {
+        async listTasks() {
+            try {
+                const response = await axios.get('/task');
+                this.tasks = response.data.data; // Armazena as tarefas na `data`
+            } catch (error) {
+                this.responseError = 'Erro ao listar tarefas';
+            }
+        },
+        formatStatus(status) {
+            // Formata o status para exibição mais amigável
+            return status.charAt(0).toUpperCase() + status.slice(1);
+        },
+        statusBadgeClass(status) {
+            // Retorna a classe de badge conforme o status
+            switch (status) {
+                case 'completed':
+                    return 'badge bg-success';
+                case 'pending':
+                    return 'badge bg-warning';
+                case 'delayed':
+                    return 'badge bg-danger';
+                default:
+                    return 'badge bg-secondary';
+            }
+        },
+        async updateTaskStatus(task) {
+            const newStatus = task.status === 'completed' ? 'pending' : 'completed';
+            try {
+                await axios.put(`/task/${task.id}`, {
+                    title: task.title,
+                    description: task.description,
+                    status: newStatus 
+                });
+                task.status = newStatus;
+            } catch (error) {
+                this.responseError = 'Erro ao atualizar o status da tarefa';
+            }
+        },
+        openDeleteModal(task) {
+            this.taskToDelete = task;  // Define a tarefa a ser deletada
+            const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            deleteModal.show();
+        },
+        async confirmDeleteTask() {
+            if (this.taskToDelete) {
+                try {
+                    await axios.delete(`/task/${this.taskToDelete.id}`);
+                    this.tasks = this.tasks.filter(task => task.id !== this.taskToDelete.id);
+                    this.taskToDelete = null;
+                    const deleteModal = bootstrap.Modal.getInstance(document.getElementById('deleteModal'));
+                    deleteModal.hide();
+                } catch (error) {
+                    this.responseError = 'Erro ao excluir a tarefa';
+                }
+            }
+        }
+    },
+    mounted() {
+        window.bootstrap = require('bootstrap/dist/js/bootstrap.bundle.js');
+        this.listTasks();
+    }
 };
 </script>
 
@@ -93,7 +183,7 @@ export default {
 }
 
 .container {
-    max-width: 900px;
+    max-width: 80%;
 }
 
 /* Título */
@@ -183,11 +273,23 @@ h2 {
 /* Cor de fundo personalizada para a navbar */
 .bg-custom {
     background-image: url('https://blog.sixchains.com.br/content/images/2023/04/Wallpaper-roxo---Sixchains.png');
-    background-size: cover;      /* Redimensiona a imagem para cobrir todo o contêiner */
-    background-position: center; /* Centraliza a imagem no contêiner */
-    background-repeat: no-repeat; /* Evita que a imagem se repita */
-    height: 50vh;               /* Altura total da viewport */
+    background-size: cover;
+    /* Redimensiona a imagem para cobrir todo o contêiner */
+    background-position: center;
+    /* Centraliza a imagem no contêiner */
+    background-repeat: no-repeat;
+    /* Evita que a imagem se repita */
+    height: 50vh;
+    /* Altura total da viewport */
 }
+
+.bg-table {
+    background-color: #311772 !important;
+}
+
+/* .bg-table th{
+    color: white;
+} */
 
 /* Cor para os links da navbar */
 .navbar-dark .navbar-nav .nav-link {
