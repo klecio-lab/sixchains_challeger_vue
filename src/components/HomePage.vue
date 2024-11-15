@@ -76,39 +76,7 @@
             </div>
 
             <!-- Modal para Adicionar Nova Task -->
-            <div class="modal fade" id="addTaskModal" tabindex="-1" aria-labelledby="addTaskModalLabel"
-                aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="addTaskModalLabel">Adicionar Nova Task</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <form @submit.prevent="createTask">
-                                <div class="mb-3">
-                                    <label for="title" class="form-label">Título</label>
-                                    <input type="text" class="form-control" id="title" v-model="newTask.title"
-                                        required />
-                                </div>
-                                <div class="mb-3">
-                                    <label for="description" class="form-label">Descrição</label>
-                                    <textarea class="form-control" id="description" v-model="newTask.description"
-                                        required></textarea>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="status" class="form-label">Status</label>
-                                    <select class="form-select" id="status" v-model="newTask.status" required>
-                                        <option value="pending">Pendente</option>
-                                        <option value="completed">Concluída</option>
-                                    </select>
-                                </div>
-                                <button type="submit" class="btn btn-primary">Criar Task</button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <CreateTaskModal :newTask="newTask"></CreateTaskModal>
 
 
             <!-- Modal de Edição -->
@@ -175,8 +143,13 @@
 <script>
 import axios from '../axios';
 import { Modal } from 'bootstrap';
+import CreateTaskModal from './modals/CreateTaskModal.vue';
+
 export default {
     name: 'HomePage',
+    components: {
+        CreateTaskModal  // Registra o componente do modal
+    },
     data() {
         return {
             tasks: [],
@@ -219,19 +192,6 @@ export default {
                     return 'badge bg-danger';
                 default:
                     return 'badge bg-secondary';
-            }
-        },
-        openCreateTaskModal() {
-            const addTaskModal = new Modal(document.getElementById('addTaskModal'));
-            addTaskModal.show();
-        },
-        async createTask() {
-            try {
-                await axios.post('/task', this.newTask);
-                const addModal = new Modal(document.getElementById('addTaskModal'));
-                addModal.hide();  // Fecha o modal
-            } catch (error) {
-                this.responseError = 'Erro ao criar task';
             }
         },
         openEditModal(task) {
