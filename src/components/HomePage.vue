@@ -28,9 +28,10 @@
                 </div>
                 <div class="row justify-content-center">
                     <div class="col-md-12">
-                        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addTaskModal" style="margin-bottom: 10px;">
+                        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addTaskModal"
+                            style="margin-bottom: 10px;">
                             <i class="bi bi-plus-circle text-white"></i> Nova Tarefa
-                    </button>
+                        </button>
                         <table class="table table-striped table-hover shadow-sm rounded">
                             <thead class="table" style="background-color: #311772;">
                                 <tr style="background-color: #311772;">
@@ -59,7 +60,7 @@
                                     </td>
                                     <td>
                                         <!-- Botão Editar -->
-                                        <button class="btn btn-warning btn-sm me-2" @click="editTask(task.id)">
+                                        <button class="btn btn-warning btn-sm me-2" @click="openEditModal(task)">
                                             <i class="bi bi-pencil-square"></i>
                                         </button>
                                         <!-- Botão Deletar -->
@@ -109,6 +110,42 @@
                 </div>
             </div>
 
+
+            <!-- Modal de Edição -->
+            <div class="modal fade" id="editTaskModal" tabindex="-1" aria-labelledby="editTaskModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="editTaskModalLabel">Editar Task</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form @submit.prevent="updateTask">
+                                <div class="mb-3">
+                                    <label for="taskTitle" class="form-label">Título</label>
+                                    <input type="text" class="form-control" id="taskTitle" v-model="taskToEdit.title"
+                                        required />
+                                </div>
+                                <div class="mb-3">
+                                    <label for="taskDescription" class="form-label">Descrição</label>
+                                    <textarea class="form-control" id="taskDescription" rows="3"
+                                        v-model="taskToEdit.description" required></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="taskStatus" class="form-label">Status</label>
+                                    <select class="form-select" id="taskStatus" v-model="taskToEdit.status" required>
+                                        <option value="pending">Pendente</option>
+                                        <option value="completed">Concluído</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Modal de Confirmação de delete -->
             <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel"
                 aria-hidden="true">
@@ -150,6 +187,12 @@ export default {
                 description: '',
                 status: 'pending'
             },
+            taskToEdit: {
+                id: null,
+                title: '',
+                description: '',
+                status: ''
+            }
         };
     },
     methods: {
@@ -162,7 +205,6 @@ export default {
             }
         },
         formatStatus(status) {
-            console.log(status)
             // Formata o status para exibição mais amigável
             return status.charAt(0).toUpperCase() + status.slice(1);
         },
@@ -179,19 +221,6 @@ export default {
                     return 'badge bg-secondary';
             }
         },
-        async updateTaskStatus(task) {
-            const newStatus = task.status === 'completed' ? 'pending' : 'completed';
-            try {
-                await axios.put(`/task/${task.id}`, {
-                    title: task.title,
-                    description: task.description,
-                    status: newStatus
-                });
-                task.status = newStatus;
-            } catch (error) {
-                this.responseError = 'Erro ao atualizar o status da tarefa';
-            }
-        },
         openCreateTaskModal() {
             const addTaskModal = new Modal(document.getElementById('addTaskModal'));
             addTaskModal.show();
@@ -203,6 +232,38 @@ export default {
                 addModal.hide();  // Fecha o modal
             } catch (error) {
                 this.responseError = 'Erro ao criar task';
+            }
+        },
+        openEditModal(task) {
+            this.taskToEdit = { ...task }; // Copia os dados da task para o objeto taskToEdit
+            const myModal = new Modal(document.getElementById('editTaskModal'));
+            myModal.show();
+        },
+        async updateTaskStatus(task) {
+            const newStatus = task.status === 'completed' ? 'pending' : 'completed';
+            try {
+                await axios.put(`/task/${task.id}`, {
+                    title: task.title,
+                    description: task.description,
+                    status: newStatus 
+                });
+                task.status = newStatus;
+            } catch (error) {
+                this.responseError = 'Erro ao atualizar o status da tarefa';
+            }
+        },
+        async updateTask() {
+            this.taskToEdit.status === 'completed' ? 'pending' : 'completed';
+            try {
+                await axios.put(`/task/${this.taskToEdit.id}`, {
+                    title: this.taskToEdit.title,
+                    description: this.taskToEdit.description,
+                    status: this.taskToEdit.status
+                });
+                const myModal = new Modal(document.getElementById('editTaskModal'));
+                myModal.hide();
+            } catch (error) {
+                this.responseError = 'Erro ao atualizar o status da tarefa';
             }
         },
         openDeleteModal(task) {
