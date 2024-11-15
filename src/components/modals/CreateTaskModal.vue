@@ -56,10 +56,14 @@ export default {
                     this.listTasks();
                     $('#addTaskModal').toggle();
                     $('.modal-backdrop').remove();
+                    document.body.style.overflow = '';
+                    document.body.style.paddingRight = '';
                     this.showToastSuccess('Tarefa Criada Com Sucesso!')
                 })
 
             } catch (error) {
+                document.body.style.overflow = '';
+                document.body.style.paddingRight = '';
                 this.showToastError('Error ao Criar Tarefa!')
                 this.responseError = 'Erro ao criar task';
             }

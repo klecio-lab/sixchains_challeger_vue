@@ -260,9 +260,13 @@ export default {
                     this.listTasks();
                     $('#editTaskModal').toggle();
                     $('.modal-backdrop').remove();
+                    document.body.style.overflow = '';
+                    document.body.style.paddingRight = '';
                     this.showToastSuccess('Tarefa Atualizada!')
                 })
             } catch (error) {
+                document.body.style.overflow = '';
+                document.body.style.paddingRight = '';
                 this.showToastError('Erro ao Atualizar a Tarefa!')
                 this.responseError = 'Erro ao atualizar o status da tarefa';
             }
@@ -281,6 +285,8 @@ export default {
                     this.$nextTick(() => {
                         $('#deleteModal').toggle();
                         $('.modal-backdrop').remove();
+                        document.body.style.overflow = '';
+                        document.body.style.paddingRight = '';
                         this.showToastSuccess('Tarefa Apagada!')
                     })
                 } catch (error) {
@@ -310,6 +316,11 @@ export default {
 </script>
 
 <style scoped>
+#body_html{
+    overflow: auto !important;
+    padding-right: 0 !important;
+}
+
 /* Ajustes gerais */
 .bg-light {
     background: linear-gradient(to right, #f4f4f4, #ffffff);
