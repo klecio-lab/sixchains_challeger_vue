@@ -1,7 +1,7 @@
 <template>
     <div class="home">
         <section class="vh-200" style="padding-bottom: 100px;">
-            <nav class="navbar navbar-expand-lg navbar-dark bg-custom">
+            <nav class="navbar navbar-expand-lg navbar-dark bg-custom" style="display: block;">
                 <div class="container-fluid">
                     <!-- Botão de Menu Responsivo -->
                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
