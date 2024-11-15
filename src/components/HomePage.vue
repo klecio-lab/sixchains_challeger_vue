@@ -28,6 +28,9 @@
                 </div>
                 <div class="row justify-content-center">
                     <div class="col-md-12">
+                        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addTaskModal" style="margin-bottom: 10px;">
+                            <i class="bi bi-plus-circle text-white"></i> Nova Tarefa
+                    </button>
                         <table class="table table-striped table-hover shadow-sm rounded">
                             <thead class="table" style="background-color: #311772;">
                                 <tr style="background-color: #311772;">
@@ -42,12 +45,9 @@
                                 <tr v-for="task in tasks" :key="task.id">
                                     <th scope="row">
                                         <div class="form-check">
-                                            <input
-                                                class="form-check-input"
-                                                type="checkbox"
+                                            <input class="form-check-input" type="checkbox"
                                                 :checked="task.status === 'completed'"
-                                                @change="updateTaskStatus(task)"
-                                            />
+                                                @change="updateTaskStatus(task)" />
                                         </div>
                                     </th>
                                     <td>{{ task.title }}</td>
@@ -74,8 +74,44 @@
                 </div>
             </div>
 
+            <!-- Modal para Adicionar Nova Task -->
+            <div class="modal fade" id="addTaskModal" tabindex="-1" aria-labelledby="addTaskModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="addTaskModalLabel">Adicionar Nova Task</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form @submit.prevent="createTask">
+                                <div class="mb-3">
+                                    <label for="title" class="form-label">Título</label>
+                                    <input type="text" class="form-control" id="title" v-model="newTask.title"
+                                        required />
+                                </div>
+                                <div class="mb-3">
+                                    <label for="description" class="form-label">Descrição</label>
+                                    <textarea class="form-control" id="description" v-model="newTask.description"
+                                        required></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="status" class="form-label">Status</label>
+                                    <select class="form-select" id="status" v-model="newTask.status" required>
+                                        <option value="pending">Pendente</option>
+                                        <option value="completed">Concluída</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Criar Task</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Modal de Confirmação de delete -->
-            <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+            <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel"
+                aria-hidden="true">
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header">
@@ -101,14 +137,19 @@
 
 <script>
 import axios from '../axios';
-
+import { Modal } from 'bootstrap';
 export default {
     name: 'HomePage',
     data() {
         return {
             tasks: [],
             responseError: '',
-            taskToDelete: null
+            taskToDelete: null,
+            newTask: {
+                title: '',
+                description: '',
+                status: 'pending'
+            },
         };
     },
     methods: {
@@ -121,6 +162,7 @@ export default {
             }
         },
         formatStatus(status) {
+            console.log(status)
             // Formata o status para exibição mais amigável
             return status.charAt(0).toUpperCase() + status.slice(1);
         },
@@ -143,16 +185,29 @@ export default {
                 await axios.put(`/task/${task.id}`, {
                     title: task.title,
                     description: task.description,
-                    status: newStatus 
+                    status: newStatus
                 });
                 task.status = newStatus;
             } catch (error) {
                 this.responseError = 'Erro ao atualizar o status da tarefa';
             }
         },
+        openCreateTaskModal() {
+            const addTaskModal = new Modal(document.getElementById('addTaskModal'));
+            addTaskModal.show();
+        },
+        async createTask() {
+            try {
+                await axios.post('/task', this.newTask);
+                const addModal = new Modal(document.getElementById('addTaskModal'));
+                addModal.hide();  // Fecha o modal
+            } catch (error) {
+                this.responseError = 'Erro ao criar task';
+            }
+        },
         openDeleteModal(task) {
             this.taskToDelete = task;  // Define a tarefa a ser deletada
-            const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            const deleteModal = new Modal(document.getElementById('deleteModal'));
             deleteModal.show();
         },
         async confirmDeleteTask() {
@@ -161,7 +216,7 @@ export default {
                     await axios.delete(`/task/${this.taskToDelete.id}`);
                     this.tasks = this.tasks.filter(task => task.id !== this.taskToDelete.id);
                     this.taskToDelete = null;
-                    const deleteModal = bootstrap.Modal.getInstance(document.getElementById('deleteModal'));
+                    const deleteModal = new Modal(document.getElementById('deleteModal'));
                     deleteModal.hide();
                 } catch (error) {
                     this.responseError = 'Erro ao excluir a tarefa';
@@ -170,7 +225,6 @@ export default {
         }
     },
     mounted() {
-        window.bootstrap = require('bootstrap/dist/js/bootstrap.bundle.js');
         this.listTasks();
     }
 };
