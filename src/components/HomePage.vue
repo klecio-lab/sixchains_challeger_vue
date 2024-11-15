@@ -76,7 +76,7 @@
             </div>
 
             <!-- Modal para Adicionar Nova Task -->
-            <CreateTaskModal :newTask="newTask" :listTasks="listTasks"></CreateTaskModal>
+            <CreateTaskModal :newTask="newTask" :listTasks="listTasks" :showToastSuccess="showToastSuccess" :showToastError="showToastError"></CreateTaskModal>
 
 
             <!-- Modal de Edição -->
@@ -133,6 +133,37 @@
                     </div>
                 </div>
             </div>
+
+            <div aria-live="polite" aria-atomic="true" style="position: fixed; top: 1rem; right: 1rem; z-index: 1050;">
+                <div ref="toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true"
+                    data-bs-delay="3000" style="min-width: 250px; background-color: #F2570A; color: #fff;">
+                    <div class="toast-header" style="background-color: #F2570A; color: #fff;">
+                        <strong class="me-auto">Notificação</strong>
+                        <small class="text-muted">Agora</small>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"
+                            aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body">
+                        {{ toastMessage }}
+                    </div>
+                </div>
+            </div>
+
+            <div aria-live="polite" aria-atomic="true" style="position: fixed; top: 1rem; right: 1rem; z-index: 1050;">
+                <div ref="toastError" class="toast" role="alert" aria-live="assertive" aria-atomic="true"
+                    data-bs-delay="3000" style="min-width: 250px; background-color: #dc3545; color: #fff;">
+                    <div class="toast-header" style="background-color: #dc3545; color: #fff;">
+                        <strong class="me-auto">Erro</strong>
+                        <small class="text-muted">Agora</small>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"
+                            aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body">
+                        {{ toastMessage }}
+                    </div>
+                </div>
+            </div>
+
             <div class="footer bg-dark text-center text-white py-3 mt-5">
                 Copyright © 2024. All rights reserved.
             </div>
@@ -145,6 +176,7 @@ import axios from '../axios';
 import { Modal } from 'bootstrap';
 import CreateTaskModal from './modals/CreateTaskModal.vue';
 import $ from 'jquery';
+import { Toast } from 'bootstrap';
 export default {
     name: 'HomePage',
     components: {
@@ -165,7 +197,9 @@ export default {
                 title: '',
                 description: '',
                 status: ''
-            }
+            },
+            toastInstance: null,
+            toastMessage: 'Hello, world! This is a toast message.'
         };
     },
     methods: {
@@ -205,10 +239,12 @@ export default {
                 await axios.put(`/task/${task.id}`, {
                     title: task.title,
                     description: task.description,
-                    status: newStatus 
+                    status: newStatus
                 });
                 task.status = newStatus;
+                this.showToastSuccess('Status da Tarefa Atualizado!')
             } catch (error) {
+                this.showToastError('Erro ao atualizar o status da tarefa!')
                 this.responseError = 'Erro ao atualizar o status da tarefa';
             }
         },
@@ -224,8 +260,10 @@ export default {
                     this.listTasks();
                     $('#editTaskModal').toggle();
                     $('.modal-backdrop').remove();
+                    this.showToastSuccess('Tarefa Atualizada!')
                 })
             } catch (error) {
+                this.showToastError('Erro ao Atualizar a Tarefa!')
                 this.responseError = 'Erro ao atualizar o status da tarefa';
             }
         },
@@ -243,11 +281,26 @@ export default {
                     this.$nextTick(() => {
                         $('#deleteModal').toggle();
                         $('.modal-backdrop').remove();
+                        this.showToastSuccess('Tarefa Apagada!')
                     })
                 } catch (error) {
                     this.responseError = 'Erro ao excluir a tarefa';
                 }
             }
+        },
+        showToastSuccess(message) {
+            this.toastMessage = message;
+            if (!this.toastInstance) {
+                this.toastInstance = new Toast(this.$refs.toast);
+            }
+            this.toastInstance.show();
+        },
+        showToastError(message) {
+            this.toastMessage = message;
+            if (!this.toastInstance) {
+                this.toastInstance = new Toast(this.$refs.toastError);
+            }
+            this.toastInstance.show();
         }
     },
     mounted() {

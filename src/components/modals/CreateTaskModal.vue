@@ -39,7 +39,7 @@
 import axios from '../../axios';
 import $ from 'jquery';
 export default {
-    props: ['newTask', 'listTasks'],
+    props: ['newTask', 'listTasks', 'showToastSuccess', 'showToastError'],
     data() {
         return {
             newTaskLocal: { ...this.newTask }  // Cria uma cópia local da prop
@@ -56,9 +56,11 @@ export default {
                     this.listTasks();
                     $('#addTaskModal').toggle();
                     $('.modal-backdrop').remove();
+                    this.showToastSuccess('Tarefa Criada Com Sucesso!')
                 })
 
             } catch (error) {
+                this.showToastError('Error ao Criar Tarefa!')
                 this.responseError = 'Erro ao criar task';
             }
 
